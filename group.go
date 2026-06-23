@@ -207,6 +207,17 @@ func (cli *Client) UpdateGroupParticipants(ctx context.Context, jid types.JID, p
 				content[i].Attrs["phone_number"] = pn
 			}
 		}
+		if action == ParticipantChangeAdd {
+			token, err := cli.ensureTCToken(ctx, participantJID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participantJID, err)
+			} else if len(token) > 0 {
+				content[i].Content = []waBinary.Node{{
+					Tag:     "privacy",
+					Content: token,
+				}}
+			}
+		}
 	}
 	resp, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{
 		Tag:     string(action),
