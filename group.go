@@ -207,6 +207,17 @@ func (cli *Client) UpdateGroupParticipants(ctx context.Context, jid types.JID, p
 				content[i].Attrs["phone_number"] = pn
 			}
 		}
+		if action == ParticipantChangeAdd && cli.Store != nil && cli.Store.PrivacyTokens != nil {
+			pt, ptErr := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, participantJID)
+			if ptErr != nil {
+				return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participantJID, ptErr)
+			} else if pt != nil {
+				content[i].Content = []waBinary.Node{{
+					Tag:     "privacy",
+					Content: pt.Token,
+				}}
+			}
+		}
 	}
 	resp, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{
 		Tag:     string(action),
